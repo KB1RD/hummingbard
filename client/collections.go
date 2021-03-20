@@ -44,9 +44,7 @@ func (c *Client) UserCollections(w http.ResponseWriter, r *http.Request) {
 	//if the last item in path starts with '$' we know it's an event_id
 	//permalink. we strip out the event_id and use the rest to check room path
 
-	serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
-	cli, err := gomatrix.NewClient(serverName, userid, token)
+	cli, err := gomatrix.NewClient(c.Config.Matrix.HomeserverURL, userid, token)
 	if err != nil {
 		log.Println(err)
 		c.Error(w, r)
@@ -59,7 +57,7 @@ func (c *Client) UserCollections(w http.ResponseWriter, r *http.Request) {
 		//build full room path
 		//if path starts with @ then it's a user timeline, otherwise room
 		p := pathItems.Items
-		room = fmt.Sprintf(`#%s:%s`, p[0], c.Config.Client.Domain)
+		room = fmt.Sprintf(`#%s:%s`, p[0], c.Config.Matrix.ServerName)
 		if fed {
 			room = fmt.Sprintf(`#%s:%s`, use.LocalPart, use.ServerName)
 		}
@@ -75,7 +73,7 @@ func (c *Client) UserCollections(w http.ResponseWriter, r *http.Request) {
 
 	var room string
 
-	room = fmt.Sprintf(`#%s:%s`, path, c.Config.Client.Domain)
+	room = fmt.Sprintf(`#%s:%s`, path, c.Config.Matrix.ServerName)
 	if fed {
 		room = fmt.Sprintf(`#%s:%s`, use.LocalPart, use.ServerName)
 	}
@@ -165,11 +163,7 @@ func (c *Client) UserCollections(w http.ResponseWriter, r *http.Request) {
 
 	//build article item, cache it
 
-	if c.Config.Mode == "development" {
-		t.HomeServerURL = c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-	} else {
-		t.HomeServerURL = fmt.Sprintf(`https://%s`, c.Config.Matrix.Server)
-	}
+	t.HomeServerURL = c.Config.Matrix.HomeserverURL
 
 	srq := ProcessStateRequest{
 		State: state,
@@ -187,7 +181,7 @@ func (c *Client) UserCollections(w http.ResponseWriter, r *http.Request) {
 			t.IsOwner = true
 		}
 		if !strings.Contains(path[0], ":") {
-			c := fmt.Sprintf(`%s:%s`, path[0], c.Config.Client.Domain)
+			c := fmt.Sprintf(`%s:%s`, path[0], c.Config.Matrix.ServerName)
 			if us.UserID == c {
 				t.IsOwner = true
 			}
@@ -230,9 +224,7 @@ func (c *Client) UserCollectionsItem(w http.ResponseWriter, r *http.Request) {
 	//if the last item in path starts with '$' we know it's an event_id
 	//permalink. we strip out the event_id and use the rest to check room path
 
-	serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
-	cli, err := gomatrix.NewClient(serverName, userid, token)
+	cli, err := gomatrix.NewClient(c.Config.Matrix.HomeserverURL, userid, token)
 	if err != nil {
 		log.Println(err)
 		c.Error(w, r)
@@ -243,7 +235,7 @@ func (c *Client) UserCollectionsItem(w http.ResponseWriter, r *http.Request) {
 
 	//build full room path
 	//if path starts with @ then it's a user timeline, otherwise room
-	room = fmt.Sprintf(`#%s:%s`, path, c.Config.Client.Domain)
+	room = fmt.Sprintf(`#%s:%s`, path, c.Config.Matrix.ServerName)
 	if fed {
 		room = fmt.Sprintf(`#%s:%s`, use.LocalPart, use.ServerName)
 	}
@@ -391,11 +383,7 @@ func (c *Client) UserCollectionsItem(w http.ResponseWriter, r *http.Request) {
 
 	//build article item, cache it
 
-	if c.Config.Mode == "development" {
-		t.HomeServerURL = c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-	} else {
-		t.HomeServerURL = fmt.Sprintf(`https://%s`, c.Config.Matrix.Server)
-	}
+	t.HomeServerURL = c.Config.Matrix.HomeserverURL
 
 	if us != nil && len(us.JoinedRooms) > 0 {
 		for i, _ := range us.JoinedRooms {
@@ -470,7 +458,7 @@ func (c *Client) CreateCollection() http.HandlerFunc {
 
 		//check if #@user_collections parent space exists, if not create it
 		localPart := GetLocalPart(user.UserID)
-		canon := fmt.Sprintf(`#@%s_%s:%s`, localPart, "collections", c.Config.Client.Domain)
+		canon := fmt.Sprintf(`#@%s_%s:%s`, localPart, "collections", c.Config.Matrix.ServerName)
 		if user.Federated {
 			canon = fmt.Sprintf(`#@%s_%s:%s`, localPart, "collections", user.HomeServer)
 		}
@@ -543,7 +531,7 @@ func (c *Client) CreateCollection() http.HandlerFunc {
 					Type:     fmt.Sprintf(`%s.parent`, c.Config.Spaces.Prefix),
 					StateKey: &user.RoomID,
 					Content: map[string]interface{}{
-						"via": []string{c.Config.Client.Domain},
+						"via": []string{c.Config.Matrix.ServerName},
 					},
 				},
 				pl,
@@ -630,7 +618,7 @@ func (c *Client) CreateCollection() http.HandlerFunc {
 				Type:     fmt.Sprintf(`%s.parent`, c.Config.Spaces.Prefix),
 				StateKey: &roomID,
 				Content: map[string]interface{}{
-					"via":             []string{c.Config.Client.Domain},
+					"via":             []string{c.Config.Matrix.ServerName},
 					"name":            pay.Name,
 					"description":     pay.Description,
 					"canonical_alias": canon,
@@ -726,7 +714,7 @@ func (c *Client) CollectionAvailable() http.HandlerFunc {
 
 		localPart := GetLocalPart(user.UserID)
 
-		canon := fmt.Sprintf(`#@%s_%s_%s:%s`, localPart, "collections", username, c.Config.Client.Domain)
+		canon := fmt.Sprintf(`#@%s_%s_%s:%s`, localPart, "collections", username, c.Config.Matrix.ServerName)
 
 		if user.Federated {
 			canon = fmt.Sprintf(`#@%s_%s_%s:%s`, localPart, "collections", username, user.HomeServer)

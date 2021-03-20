@@ -181,8 +181,6 @@ func (c *Client) Timeline(w http.ResponseWriter, r *http.Request) {
 	token = c.DefaultUser.AccessToken
 	userid = c.DefaultUser.UserID
 
-	serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
 	// we're not using user token for viewing timeline events until peeking is
 	// implemented in Dendrite
 	/*
@@ -204,7 +202,7 @@ func (c *Client) Timeline(w http.ResponseWriter, r *http.Request) {
 		}
 	*/
 
-	cli, err := gomatrix.NewClient(serverName, userid, token)
+	cli, err := gomatrix.NewClient(c.Config.Matrix.HomeserverURL, userid, token)
 	if err != nil {
 		log.Println(err)
 		c.Error(w, r)
@@ -257,7 +255,7 @@ func (c *Client) Timeline(w http.ResponseWriter, r *http.Request) {
 				if len(sp) > 1 {
 
 					path = strings.Join(sp, "_")
-					room := fmt.Sprintf(`#%s:%s`, path, c.Config.Client.Domain)
+					room := fmt.Sprintf(`#%s:%s`, path, c.Config.Matrix.ServerName)
 					_, err = cli.ResolveAlias(room)
 					if err != nil {
 						log.Println(err)
@@ -290,7 +288,7 @@ func (c *Client) Timeline(w http.ResponseWriter, r *http.Request) {
 
 	if path[0] == '@' && len(pi) == 1 {
 		//this is for local user's timeline room
-		room = fmt.Sprintf(`#%s:%s`, path, c.Config.Client.Domain)
+		room = fmt.Sprintf(`#%s:%s`, path, c.Config.Matrix.ServerName)
 		//this is for users on other homeservers
 		if fed {
 			room = fmt.Sprintf(`#%s:%s`, use.LocalPart, use.ServerName)
@@ -299,7 +297,7 @@ func (c *Client) Timeline(w http.ResponseWriter, r *http.Request) {
 	} else {
 		sp := strings.Split(path, "/")
 		path = strings.Join(sp, "_")
-		room = fmt.Sprintf(`#%s:%s`, path, c.Config.Client.Domain)
+		room = fmt.Sprintf(`#%s:%s`, path, c.Config.Matrix.ServerName)
 		fed, use := FederationRoom(path)
 		if fed {
 			room = fmt.Sprintf(`#%s:%s`, use.LocalPart, use.ServerName)
@@ -314,7 +312,7 @@ func (c *Client) Timeline(w http.ResponseWriter, r *http.Request) {
 		if len(sp) > 1 {
 
 			path = strings.Join(sp, "_")
-			room = fmt.Sprintf(`#%s:%s`, path, c.Config.Client.Domain)
+			room = fmt.Sprintf(`#%s:%s`, path, c.Config.Matrix.ServerName)
 
 			path := pathItems.Items
 			fed, use := FederationRoom(path[0])
@@ -423,7 +421,7 @@ func (c *Client) Timeline(w http.ResponseWriter, r *http.Request) {
 		path = strings.Join(pi, "/")
 		if path[0] == '@' {
 			//this is for local user's timeline room
-			newRoom = fmt.Sprintf(`#%s:%s`, path, c.Config.Client.Domain)
+			newRoom = fmt.Sprintf(`#%s:%s`, path, c.Config.Matrix.ServerName)
 			//this is for users on other homeservers
 			if fed {
 				newRoom = fmt.Sprintf(`#%s:%s`, use.LocalPart, use.ServerName)
@@ -432,7 +430,7 @@ func (c *Client) Timeline(w http.ResponseWriter, r *http.Request) {
 		} else {
 			sp := strings.Split(path, "/")
 			path = strings.Join(sp, "_")
-			newRoom = fmt.Sprintf(`#%s:%s`, path, c.Config.Client.Domain)
+			newRoom = fmt.Sprintf(`#%s:%s`, path, c.Config.Matrix.ServerName)
 			path := pathItems.Items
 			fed, use := FederationRoom(path[0])
 			if fed {
@@ -520,11 +518,7 @@ func (c *Client) Timeline(w http.ResponseWriter, r *http.Request) {
 		t.LastEvent = events[len(events)-1].Timestamp
 	}
 
-	if c.Config.Mode == "development" {
-		t.HomeServerURL = c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-	} else {
-		t.HomeServerURL = fmt.Sprintf(`https://%s`, c.Config.Matrix.Server)
-	}
+	t.HomeServerURL = c.Config.Matrix.HomeserverURL
 
 	// has logged in user joined the room?
 	if us != nil && len(us.JoinedRooms) > 0 {
@@ -675,9 +669,7 @@ func (c *Client) PermalinkTimeline(w http.ResponseWriter, r *http.Request, slugg
 		}
 	}
 
-	serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
-	cli, err := gomatrix.NewClient(serverName, userid, token)
+	cli, err := gomatrix.NewClient(c.Config.Matrix.HomeserverURL, userid, token)
 	if err != nil {
 		log.Println(err)
 		c.Error(w, r)
@@ -695,7 +687,7 @@ func (c *Client) PermalinkTimeline(w http.ResponseWriter, r *http.Request, slugg
 		p = p[:len(p)-1]
 		path = strings.Join(p, "_")
 
-		room = fmt.Sprintf(`#%s:%s`, path, c.Config.Client.Domain)
+		room = fmt.Sprintf(`#%s:%s`, path, c.Config.Matrix.ServerName)
 		if fed {
 			room = fmt.Sprintf(`#%s:%s`, use.LocalPart, use.ServerName)
 		}
@@ -708,7 +700,7 @@ func (c *Client) PermalinkTimeline(w http.ResponseWriter, r *http.Request, slugg
 			p := pi[:len(pi)-2]
 			pth = strings.Join(p, "_")
 		}
-		room = fmt.Sprintf(`#%s:%s`, pth, c.Config.Client.Domain)
+		room = fmt.Sprintf(`#%s:%s`, pth, c.Config.Matrix.ServerName)
 		fed, use := FederationRoom(pth)
 
 		if fed {
@@ -911,11 +903,7 @@ func (c *Client) PermalinkTimeline(w http.ResponseWriter, r *http.Request, slugg
 
 	}
 
-	if c.Config.Mode == "development" {
-		t.HomeServerURL = c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-	} else {
-		t.HomeServerURL = fmt.Sprintf(`https://%s`, c.Config.Matrix.Server)
-	}
+	t.HomeServerURL = c.Config.Matrix.HomeserverURL
 
 	if us != nil && len(us.JoinedRooms) > 0 {
 		for i, _ := range us.JoinedRooms {
@@ -1094,9 +1082,7 @@ func (c *Client) GetMoreMessages() http.HandlerFunc {
 			LastEvent interface{} `json:"last_event"`
 		}
 
-		serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
-		cli, err := gomatrix.NewClient(serverName, c.DefaultUser.UserID, c.DefaultUser.AccessToken)
+		cli, err := gomatrix.NewClient(c.Config.Matrix.HomeserverURL, c.DefaultUser.UserID, c.DefaultUser.AccessToken)
 		if err != nil {
 			log.Println(err)
 			c.Error(w, r)

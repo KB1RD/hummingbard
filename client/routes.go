@@ -60,7 +60,6 @@ func routes(c *Client) chi.Router {
 		IsDevelopment:         false,
 		AllowedHosts: []string{
 			fmt.Sprintf(`%s%s`, c.Config.Client.Domain, c.Config.Client.Port),
-			fmt.Sprintf(`%s`, c.Config.Matrix.Server),
 			"192.168.1.4:7666",
 		},
 	}

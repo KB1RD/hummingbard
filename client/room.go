@@ -281,7 +281,7 @@ func (c *Client) GetRoomMembers() http.HandlerFunc {
 
 		for r, x := range members.Joined {
 			if strings.Contains(r, `@anonymous`) ||
-				strings.Contains(r, fmt.Sprintf(`@%s`, c.Config.Client.Domain)) {
+				strings.Contains(r, fmt.Sprintf(`@%s`, c.Config.Matrix.ServerName)) {
 				continue
 			}
 			ff.Members[r] = x
@@ -628,9 +628,9 @@ func (c *Client) Queryspace() http.HandlerFunc {
 		fed, use := FederationRoom(pay.Query)
 
 		if fed {
-			wk, err := WellKnown(c.URLScheme(use.ServerName))
+			wk, err := WellKnown("https://" + use.ServerName)
 			if err == nil {
-				serverName := c.URLScheme(wk.ServerName)
+				serverName := "https://" + wk.ServerName
 
 				cli, err := gomatrix.NewClient(serverName, user.UserID, user.MatrixAccessToken)
 				if err != nil {

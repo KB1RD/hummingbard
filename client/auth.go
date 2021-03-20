@@ -103,19 +103,19 @@ func (c *Client) ValidateLogin() http.HandlerFunc {
 		fu, us := c.IsFederated(username)
 		//port is only for my dev environment, this needs to go, or i'm just
 		//confused
-		serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
+		serverName := c.Config.Matrix.HomeserverURL
 
 		//if federation user, we query homeserver at the /well-known endpoint
 		//for full server path
 		if fu {
-			wk, err := WellKnown(c.URLScheme(us.ServerName))
+			wk, err := WellKnown("https://" + us.ServerName)
 			if err != nil {
 				log.Println(err)
 				c.Error(w, r)
 				return
 			}
 			log.Println(wk)
-			serverName = c.URLScheme(wk.ServerName)
+			serverName = "https://" + wk.ServerName
 			username = fmt.Sprintf(`%s:%s`, us.LocalPart, us.ServerName)
 		}
 
@@ -149,7 +149,7 @@ func (c *Client) ValidateLogin() http.HandlerFunc {
 
 		//check if a room exists for this username with canonical room alis in
 		//the format #@username:server.org
-		un := fmt.Sprintf(`#@%s:%s`, username, c.Config.Client.Domain)
+		un := fmt.Sprintf(`#@%s:%s`, username, c.Config.Matrix.ServerName)
 		if fu {
 			un = fmt.Sprintf(`#%s:%s`, us.LocalPart, us.ServerName)
 		}
@@ -239,7 +239,7 @@ func (c *Client) ValidateLogin() http.HandlerFunc {
 			}()
 		}
 
-		pub := fmt.Sprintf(`#public:%s`, c.Config.Client.Domain)
+		pub := fmt.Sprintf(`#public:%s`, c.Config.Matrix.ServerName)
 		_, err = matrix.JoinRoom(pub, "", nil)
 		if err != nil {
 			log.Println(err)
@@ -501,18 +501,18 @@ func (c *Client) ValidateSignup() http.HandlerFunc {
 			return
 		}
 
-		serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
+		serverName := c.Config.Matrix.HomeserverURL
 
 		if strings.Contains(username, ":") {
 			_, us := c.IsFederated(username)
 
-			wk, err := WellKnown(c.URLScheme(us.ServerName))
+			wk, err := WellKnown("https://" + us.ServerName)
 			if err != nil {
 				log.Println(err)
 				c.Error(w, r)
 				return
 			}
-			serverName = c.URLScheme(wk.ServerName)
+			serverName = "https://" + wk.ServerName
 			//get rid of the @ prefix
 			username = us.LocalPart[1:]
 		}
@@ -584,7 +584,7 @@ func (c *Client) ValidateSignup() http.HandlerFunc {
 		//let them join #public
 		go func() {
 
-			pub := fmt.Sprintf(`#public:%s`, c.Config.Client.Domain)
+			pub := fmt.Sprintf(`#public:%s`, c.Config.Matrix.ServerName)
 			_, err := matrix.JoinRoom(pub, "", nil)
 			if err != nil {
 				log.Println(err)

@@ -40,7 +40,7 @@ func (c *Client) ProcessState(req *ProcessStateRequest) {
 
 		ow := owner.String()
 
-		if strings.Contains(ow, c.Config.Client.Domain) {
+		if strings.Contains(ow, c.Config.Matrix.ServerName) {
 			s := strings.Split(ow, ":")
 			ow = s[0]
 		}

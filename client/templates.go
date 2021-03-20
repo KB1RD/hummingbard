@@ -90,7 +90,7 @@ func isUserProfile(s string) bool {
 	if err != nil {
 		log.Println(err)
 	}
-	return strings.Contains(s, "@") && strings.Contains(s, conf.Client.Domain)
+	return strings.Contains(s, "@") && strings.Contains(s, conf.Matrix.ServerName)
 }
 
 func AspectRatio(x, y string) string {

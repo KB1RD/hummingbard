@@ -99,8 +99,7 @@ func Start() {
 		DB:       conf.Redis.DB,
 	})
 
-	server := fmt.Sprintf(`http://%s:%d`, conf.Matrix.Server, conf.Matrix.Port)
-	matrix, err := gomatrix.NewClient(server, "", "")
+	matrix, err := gomatrix.NewClient(conf.Matrix.HomeserverURL, "", "")
 	if err != nil {
 		panic(err)
 	}
@@ -189,7 +188,7 @@ func Start() {
 
 	//does default #public room exist?
 	//create #public room
-	un := fmt.Sprintf(`#public:%s`, conf.Matrix.Server)
+	un := fmt.Sprintf(`#public:%s`, conf.Matrix.ServerName)
 	res, err := matrix.ResolveAlias(un)
 	if err != nil || res == nil {
 		log.Println(err)
@@ -217,8 +216,7 @@ func Start() {
 		if err != nil || crr == nil {
 			log.Println(err)
 		}
-		pub := fmt.Sprintf(`#public:%s`, conf.Client.Domain)
-		_, err = matrix.JoinRoom(pub, "", nil)
+		_, err = matrix.JoinRoom(un, "", nil)
 		if err != nil {
 			log.Println(err)
 		}

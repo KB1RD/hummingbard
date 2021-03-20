@@ -213,7 +213,7 @@ func (c *Client) ProcessEvent(x *gomatrix.Event, user *User) {
 		x.Content["bodyHTML"] = template.HTML(body)
 	}
 
-	if strings.Contains(x.Sender, c.Config.Client.Domain) {
+	if strings.Contains(x.Sender, c.Config.Matrix.ServerName) {
 		s := strings.Split(x.Sender, ":")
 		x.Author.FormattedID = s[0]
 	} else {

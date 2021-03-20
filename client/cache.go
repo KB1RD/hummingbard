@@ -114,7 +114,7 @@ func (c *Client) GetPublicRooms() ([]*PublicRoom, error) {
 			p := strings.Split(rp, "_")
 			al := strings.Join(p, "/")
 
-			if strings.Contains(alias.String(), fmt.Sprintf(`:%s`, c.Config.Client.Domain)) {
+			if strings.Contains(alias.String(), fmt.Sprintf(`:%s`, c.Config.Matrix.ServerName)) {
 				room.RoomPath = al
 			} else {
 				room.RoomPath = fmt.Sprintf(`%s:%s`, al, sp[1])
@@ -213,7 +213,7 @@ func (c *Client) RefreshRoomEvents(roomID string) (bool, error) {
 	token := c.DefaultUser.AccessToken
 	userid := c.DefaultUser.UserID
 
-	serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
+	serverName := c.Config.Matrix.HomeserverURL
 
 	cli, err := gomatrix.NewClient(serverName, userid, token)
 	if err != nil {
@@ -261,7 +261,7 @@ func (c *Client) RefreshRoomEvents(roomID string) (bool, error) {
 }
 
 func (c *Client) RefreshPublicEvents(roomID string) (bool, error) {
-	serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
+	serverName := c.Config.Matrix.HomeserverURL
 
 	cli, err := gomatrix.NewClient(serverName, c.DefaultUser.UserID, c.DefaultUser.AccessToken)
 	if err != nil {

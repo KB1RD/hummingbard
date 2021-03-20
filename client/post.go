@@ -105,22 +105,18 @@ func (c *Client) CreateNewPost() http.HandlerFunc {
 
 		fu, us := c.FederationUser(user.UserID)
 		//port is only for my dev environment, this needs to go
-		serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
+		serverName := c.Config.Matrix.HomeserverURL
 
 		//if federation user, we query homeserver at the /well-known endpoint
 		//for full server path
-		if fu {
-			wk, err := WellKnown(c.URLScheme(us.ServerName))
+		if fu && !pay.Anonymous {
+			wk, err := WellKnown("https://" + us.ServerName)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, err.Error(), 400)
 				return
 			}
-			serverName = c.URLScheme(wk.ServerName)
-		}
-		if pay.Anonymous {
-			serverName = c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
+			serverName = "https://" + wk.ServerName
 		}
 
 		userid := user.UserID
@@ -291,7 +287,7 @@ func (c *Client) CreateNewPost() http.HandlerFunc {
 				rp = pay.RoomAlias[1:]
 			}
 			sp := strings.Split(rp, ":")
-			if sp[1] != c.Config.Client.Domain {
+			if sp[1] != c.Config.Matrix.ServerName {
 				npe.Federated = true
 			}
 		}
@@ -387,7 +383,7 @@ func (c *Client) CreateNewPost() http.HandlerFunc {
 
 			go func() {
 				npe.EventID = cre.EventID
-				un := fmt.Sprintf(`#public:%s`, c.Config.Client.Domain)
+				un := fmt.Sprintf(`#public:%s`, c.Config.Matrix.ServerName)
 				res, err := matrix.ResolveAlias(un)
 				if err != nil || res == nil {
 					log.Println(err)
@@ -493,18 +489,18 @@ func (c *Client) EditPost() http.HandlerFunc {
 
 		fu, us := c.FederationUser(user.UserID)
 		//port is only for my dev environment, this needs to go
-		serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
+		serverName := c.Config.Matrix.HomeserverURL
 
 		//if federation user, we query homeserver at the /well-known endpoint
 		//for full server path
 		if fu {
-			wk, err := WellKnown(c.URLScheme(us.ServerName))
+			wk, err := WellKnown("https://" + us.ServerName)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, err.Error(), 400)
 				return
 			}
-			serverName = c.URLScheme(wk.ServerName)
+			serverName = "https://" + wk.ServerName
 		}
 
 		matrix, err := gomatrix.NewClient(serverName, user.UserID, user.MatrixAccessToken)
@@ -602,18 +598,18 @@ func (c *Client) ReactToPost() http.HandlerFunc {
 
 		fu, us := c.FederationUser(user.UserID)
 		//port is only for my dev environment, this needs to go
-		serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
+		serverName := c.Config.Matrix.HomeserverURL
 
 		//if federation user, we query homeserver at the /well-known endpoint
 		//for full server path
 		if fu {
-			wk, err := WellKnown(c.URLScheme(us.ServerName))
+			wk, err := WellKnown("https://" + us.ServerName)
 			if err != nil {
 				log.Println(err)
 				c.Error(w, r)
 				return
 			}
-			serverName = c.URLScheme(wk.ServerName)
+			serverName = "https://" + wk.ServerName
 		}
 
 		matrix, err := gomatrix.NewClient(serverName, user.UserID, user.MatrixAccessToken)
@@ -682,18 +678,18 @@ func (c *Client) RedactPost() http.HandlerFunc {
 
 		fu, us := c.FederationUser(user.UserID)
 		//port is only for my dev environment, this needs to go
-		serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
+		serverName := c.Config.Matrix.HomeserverURL
 
 		//if federation user, we query homeserver at the /well-known endpoint
 		//for full server path
 		if fu {
-			wk, err := WellKnown(c.URLScheme(us.ServerName))
+			wk, err := WellKnown("https://" + us.ServerName)
 			if err != nil {
 				log.Println(err)
 				c.Error(w, r)
 				return
 			}
-			serverName = c.URLScheme(wk.ServerName)
+			serverName = "https://" + wk.ServerName
 		}
 
 		matrix, err := gomatrix.NewClient(serverName, user.UserID, user.MatrixAccessToken)
@@ -767,18 +763,18 @@ func (c *Client) ReportPost() http.HandlerFunc {
 
 		fu, us := c.FederationUser(user.UserID)
 		//port is only for my dev environment, this needs to go
-		serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
+		serverName := c.Config.Matrix.HomeserverURL
 
 		//if federation user, we query homeserver at the /well-known endpoint
 		//for full server path
 		if fu {
-			wk, err := WellKnown(c.URLScheme(us.ServerName))
+			wk, err := WellKnown("https://" + us.ServerName)
 			if err != nil {
 				log.Println(err)
 				c.Error(w, r)
 				return
 			}
-			serverName = c.URLScheme(wk.ServerName)
+			serverName = "https://" + wk.ServerName
 		}
 
 		matrix, err := gomatrix.NewClient(serverName, user.UserID, user.MatrixAccessToken)

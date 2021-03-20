@@ -95,7 +95,7 @@ func (c *Client) SpaceUsernameAvailable() http.HandlerFunc {
 			username = fmt.Sprintf(`%s_%s`, localPart, strings.ToLower(pay.Username))
 		}
 
-		canon := fmt.Sprintf(`#%s:%s`, username, c.Config.Client.Domain)
+		canon := fmt.Sprintf(`#%s:%s`, username, c.Config.Matrix.ServerName)
 
 		if user.Federated {
 			canon = fmt.Sprintf(`#%s:%s`, username, user.HomeServer)
@@ -180,7 +180,7 @@ func (c *Client) ValidateRoomCreation() http.HandlerFunc {
 			return
 		}
 
-		canon := fmt.Sprintf(`#%s:%s`, strings.ToLower(pay.Username), c.Config.Client.Domain)
+		canon := fmt.Sprintf(`#%s:%s`, strings.ToLower(pay.Username), c.Config.Matrix.ServerName)
 
 		var state []*gomatrix.Event
 
@@ -198,7 +198,7 @@ func (c *Client) ValidateRoomCreation() http.HandlerFunc {
 			s := strings.Split(alias, ":")
 			localPart := s[0]
 			username := fmt.Sprintf(`%s_%s`, localPart, strings.ToLower(pay.Username))
-			canon = fmt.Sprintf(`#%s:%s`, username, c.Config.Client.Domain)
+			canon = fmt.Sprintf(`#%s:%s`, username, c.Config.Matrix.ServerName)
 		}
 
 		_, err = c.Matrix.ResolveAlias(canon)
@@ -274,7 +274,7 @@ func (c *Client) ValidateRoomCreation() http.HandlerFunc {
 					"local_part":      username,
 					"stripped":        strings.ToLower(pay.Username),
 					"room_path":       path,
-					"via":             []string{c.Config.Client.Domain},
+					"via":             []string{c.Config.Matrix.ServerName},
 				}
 
 				if pay.Page {

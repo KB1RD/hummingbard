@@ -54,7 +54,7 @@ func (c *Client) FederationUser(username string) (bool, *UserID) {
 		username = username[1:]
 		parts := strings.Split(username, ":")
 
-		if parts[1] == c.Config.Matrix.Server {
+		if parts[1] == c.Config.Matrix.ServerName {
 			return false, nil
 		}
 		return true, &UserID{
@@ -100,8 +100,7 @@ func (c *Client) IsFederated(username string) (bool, *UserID) {
 		parts := strings.Split(username, ":")
 
 		//if severname is the same as out homeserver, return
-		if parts[1] == c.Config.Client.Domain ||
-			parts[1] == c.Config.Matrix.Server {
+		if parts[1] == c.Config.Matrix.ServerName {
 			return false, nil
 		}
 
@@ -121,12 +120,12 @@ func FileID(fileID string) string {
 	return sp[1]
 }
 
-func (c *Client) URLScheme(url string) string {
+/* func (c *Client) URLScheme(url string) string {
 	if c.Config.Matrix.Server != url {
 		return fmt.Sprintf(`https://%s`, url)
 	}
 	return fmt.Sprintf(`http://%s`, url)
-}
+} */
 
 func UnsafeHTML(x string) (template.HTML, error) {
 	unsafe := blackfriday.Run([]byte(x))
@@ -248,7 +247,7 @@ func StripMXCPrefix(s string) string {
 func (c *Client) RoomPathFromAlias(alias string) string {
 	federated := false
 	sp := strings.Split(alias, ":")
-	if sp[1] != c.Config.Client.Domain {
+	if sp[1] != c.Config.Matrix.ServerName {
 		federated = true
 	}
 
@@ -327,14 +326,7 @@ func (c *Client) BuildDownloadLink(mxc string) string {
 		return ""
 	}
 
-	serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
-	avurl = fmt.Sprintf(`%s/_matrix/media/r0/download/%s`, serverName, avurl)
-
-	if c.Config.Mode == "production" {
-		serverName = c.Config.Matrix.Server
-		avurl = fmt.Sprintf(`https://%s/_matrix/media/r0/download/%s`, serverName, StripMXCPrefix(mxc))
-	}
+	avurl = fmt.Sprintf(`%s/_matrix/media/r0/download/%s`, c.Config.Matrix.HomeserverURL, avurl)
 
 	return avurl
 }
@@ -347,14 +339,7 @@ func (c *Client) BuildAvatar(mxc string) string {
 		return ""
 	}
 
-	serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
-	avurl = fmt.Sprintf(`%s/_matrix/media/r0/thumbnail/%s?width=32&height=32&method=crop`, serverName, avurl)
-
-	if c.Config.Mode == "production" {
-		serverName = c.Config.Matrix.Server
-		avurl = fmt.Sprintf(`https://%s/_matrix/media/r0/thumbnail/%s?width=32&height=32&method=crop`, serverName, StripMXCPrefix(mxc))
-	}
+	avurl = fmt.Sprintf(`%s/_matrix/media/r0/thumbnail/%s?width=32&height=32&method=crop`, c.Config.Matrix.HomeserverURL, avurl)
 
 	return avurl
 }
@@ -367,14 +352,7 @@ func (c *Client) BuildProfileAvatar(mxc string) string {
 		return ""
 	}
 
-	serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
-	avurl = fmt.Sprintf(`%s/_matrix/media/r0/thumbnail/%s?width=100&height=100&method=crop`, serverName, avurl)
-
-	if c.Config.Mode == "production" {
-		serverName = c.Config.Matrix.Server
-		avurl = fmt.Sprintf(`https://%s/_matrix/media/r0/thumbnail/%s?width=32&height=32&method=crop`, serverName, StripMXCPrefix(mxc))
-	}
+	avurl = fmt.Sprintf(`%s/_matrix/media/r0/thumbnail/%s?width=100&height=100&method=crop`, c.Config.Matrix.HomeserverURL, avurl)
 
 	return avurl
 }
@@ -387,14 +365,7 @@ func (c *Client) BuildImage(mxc string) string {
 		return ""
 	}
 
-	serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
-	avurl = fmt.Sprintf(`%s/_matrix/media/r0/thumbnail/%s?width=800&height=600&method=scale`, serverName, avurl)
-
-	if c.Config.Mode == "production" {
-		serverName = c.Config.Matrix.Server
-		avurl = fmt.Sprintf(`https://%s/_matrix/media/r0/thumbnail/%s?width=800&height=600&method=scale`, serverName, StripMXCPrefix(mxc))
-	}
+	avurl = fmt.Sprintf(`%s/_matrix/media/r0/thumbnail/%s?width=800&height=600&method=scale`, c.Config.Matrix.HomeserverURL, avurl)
 
 	return avurl
 }
@@ -431,7 +402,7 @@ func (c *Client) GetLocalPartPath(s string, profile bool) string {
 		g = g[1:]
 	}
 
-	if !strings.Contains(x[1], c.Config.Client.Domain) && !profile {
+	if !strings.Contains(x[1], c.Config.Matrix.ServerName) && !profile {
 		g[0] = fmt.Sprintf(`%s:%s`, g[0], x[1])
 	}
 

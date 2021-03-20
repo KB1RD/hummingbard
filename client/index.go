@@ -24,16 +24,14 @@ func (c *Client) PublicFeed() http.HandlerFunc {
 
 		us := LoggedInUser(r)
 
-		serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
-		cli, err := gomatrix.NewClient(serverName, c.DefaultUser.UserID, c.DefaultUser.AccessToken)
+		cli, err := gomatrix.NewClient(c.Config.Matrix.HomeserverURL, c.DefaultUser.UserID, c.DefaultUser.AccessToken)
 		if err != nil {
 			log.Println(err)
 			c.Error(w, r)
 			return
 		}
 
-		room := fmt.Sprintf(`#public:%s`, c.Config.Client.Domain)
+		room := fmt.Sprintf(`#public:%s`, c.Config.Matrix.ServerName)
 
 		ra, err := cli.ResolveAlias(room)
 		if err != nil {
@@ -97,11 +95,7 @@ func (c *Client) PublicFeed() http.HandlerFunc {
 		t.Room.Type = "feed"
 		t.Room.Alias = "public"
 
-		if c.Config.Mode == "development" {
-			t.HomeServerURL = c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-		} else {
-			t.HomeServerURL = fmt.Sprintf(`https://%s`, c.Config.Matrix.Server)
-		}
+		t.HomeServerURL = c.Config.Matrix.HomeserverURL
 
 		c.Templates.ExecuteTemplate(w, "public", t)
 	}
@@ -143,9 +137,7 @@ func (c *Client) IndexUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
-	matrix, err := gomatrix.NewClient(serverName, c.DefaultUser.UserID, c.DefaultUser.AccessToken)
+	matrix, err := gomatrix.NewClient(c.Config.Matrix.HomeserverURL, c.DefaultUser.UserID, c.DefaultUser.AccessToken)
 	if err != nil {
 		log.Println(err)
 		c.Error(w, r)
@@ -249,11 +241,7 @@ func (c *Client) IndexUser(w http.ResponseWriter, r *http.Request) {
 		t.ProfileLink = template.URL(sp[0])
 	}
 
-	if c.Config.Mode == "development" {
-		t.HomeServerURL = c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-	} else {
-		t.HomeServerURL = fmt.Sprintf(`https://%s`, c.Config.Matrix.Server)
-	}
+	t.HomeServerURL = c.Config.Matrix.HomeserverURL
 
 	t.Nonce = nonce
 	ip, err := json.Marshal(t.Posts)
@@ -306,11 +294,7 @@ func (c *Client) WelcomePage(w http.ResponseWriter, r *http.Request) {
 	t.Nonce = nonce
 	t.LoggedInUser = user
 
-	if c.Config.Mode == "development" {
-		t.HomeServerURL = c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-	} else {
-		t.HomeServerURL = fmt.Sprintf(`https://%s`, c.Config.Matrix.Server)
-	}
+	t.HomeServerURL = c.Config.Matrix.HomeserverURL
 
 	c.Templates.ExecuteTemplate(w, "welcome", t)
 }
@@ -346,9 +330,7 @@ func (c *Client) GetFeedEvents() http.HandlerFunc {
 
 		log.Println("recieved payload ", pay)
 
-		serverName := c.URLScheme(c.Config.Matrix.Server) + fmt.Sprintf(`:%d`, c.Config.Matrix.Port)
-
-		matrix, err := gomatrix.NewClient(serverName, c.DefaultUser.UserID, c.DefaultUser.AccessToken)
+		matrix, err := gomatrix.NewClient(c.Config.Matrix.HomeserverURL, c.DefaultUser.UserID, c.DefaultUser.AccessToken)
 		if err != nil {
 			log.Println(err)
 			c.Error(w, r)

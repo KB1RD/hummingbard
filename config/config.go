@@ -15,8 +15,8 @@ type Client struct {
 }
 
 type Matrix struct {
-	Server            string `toml:"server"`
-	Port              int    `toml:"port"`
+	ServerName        string `toml:"server_name"`
+	HomeserverURL     string `toml:"homeserver_url"`
 	Password          string `toml:"password"`
 	AnonymousPassword string `toml:"anonymous_password"`
 }

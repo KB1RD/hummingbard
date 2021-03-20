@@ -9,8 +9,8 @@ cookie_name = "hummingbard"
 secure_cookie = "something_random"
 
 [matrix]
-server = "localhost.com"
-port = 8008
+server_name = "localhost.com"
+homeserver_url = "http://localhost:8080"
 password = "CaR6hxVWKBzYn"
 
 [db]
